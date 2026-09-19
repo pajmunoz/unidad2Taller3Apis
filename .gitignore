@@ -1,1 +1,54 @@
+# Dependencias y artefactos generados
 node_modules/
+dist/
+coverage/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Variables de entorno y secretos locales
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Configuraciones de gestores que pueden contener tokens
+.npmrc
+.yarnrc
+.pypirc
+
+# Claves privadas, certificados y almacenes de claves
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_ed25519
+
+# Credenciales de servicios y proveedores cloud
+credentials.json
+credentials.*.json
+service-account*.json
+*-service-account.json
+firebase-adminsdk*.json
+
+# Entornos exportados de Postman pueden contener tokens
+*.postman_environment.json
+
+# Respaldos y volcados de bases de datos
+dump/
+dumps/
+backups/
+*.bson
+*.dump
+*.sql.gz
+
+# Archivos locales del sistema y editores
+.DS_Store
+.idea/
+.vscode/settings.json
+*.swp
