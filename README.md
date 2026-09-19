@@ -126,6 +126,12 @@ La API queda disponible tanto en `http://localhost:3000/api/v1/empleados` como e
 requieren el identificador en la URL: `PUT /api/v1/empleados/:id` y
 `DELETE /api/v1/empleados/:id`.
 
+### Documentación Swagger
+
+Con el backend en ejecución, abre `http://localhost:3000/api-docs` para visualizar y probar
+los endpoints desde Swagger UI. El documento OpenAPI también está disponible como JSON en
+`http://localhost:3000/api-docs.json`.
+
 ### Pruebas con Postman
 
 Importa `backend/postman/empleados.postman_collection.json` en Postman y ejecuta la
