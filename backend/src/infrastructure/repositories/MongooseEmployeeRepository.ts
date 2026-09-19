@@ -38,7 +38,7 @@ export class MongooseEmployeeRepository implements IEmployeeRepository {
 
   async update(id: string, changes: EmployeeChanges): Promise<Employee | null> {
     const document = await EmployeeModel.findByIdAndUpdate(id, changes, {
-      new: true,
+      returnDocument: 'after',
       runValidators: true,
     })
       .lean()

@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "875719a4-e919-4cdf-b959-b4a22f659c45",
     "name": "Gestión de empleados API",
-    "description": "Colección para comprobar el CRUD de empleados y la conexión del backend. Ejecute las peticiones en el orden definido; Crear empleado guarda automáticamente employeeId para las operaciones posteriores.",
+    "description": "Colección para comprobar el CRUD, los DTO de Zod y el response wrapper. Ejecute las peticiones en el orden definido; Crear empleado guarda automáticamente employeeId para las operaciones posteriores.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -42,7 +42,7 @@
               "});",
               "",
               "pm.test('El estado es ok', function () {",
-              "  pm.expect(pm.response.json().status).to.eql('ok');",
+              "  pm.expect(pm.response.json().data.status).to.eql('ok');",
               "});"
             ]
           }
@@ -73,7 +73,7 @@
               "});",
               "",
               "pm.test('La respuesta es un arreglo', function () {",
-              "  pm.expect(pm.response.json()).to.be.an('array');",
+              "  pm.expect(pm.response.json().data).to.be.an('array');",
               "});"
             ]
           }
@@ -118,7 +118,7 @@
               "  pm.response.to.have.status(201);",
               "});",
               "",
-              "const employee = pm.response.json();",
+              "const employee = pm.response.json().data;",
               "",
               "pm.test('El empleado contiene un id', function () {",
               "  pm.expect(employee.id).to.be.a('string').and.not.empty;",
@@ -169,7 +169,7 @@
               "});",
               "",
               "pm.test('Los datos fueron actualizados', function () {",
-              "  const employee = pm.response.json();",
+              "  const employee = pm.response.json().data;",
               "  pm.expect(employee.id).to.eql(pm.collectionVariables.get('employeeId'));",
               "  pm.expect(employee.cargo).to.eql('Arquitecto de Soluciones');",
               "  pm.expect(employee.sueldo).to.eql(5000);",
@@ -198,13 +198,70 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Responde con HTTP 204', function () {",
-              "  pm.response.to.have.status(204);",
+              "pm.test('Responde con HTTP 200', function () {",
+              "  pm.response.to.have.status(200);",
               "});",
               "",
-              "if (pm.response.code === 204) {",
+              "pm.test('Utiliza el response wrapper', function () {",
+              "  const response = pm.response.json();",
+              "  pm.expect(response.success).to.eql(true);",
+              "  pm.expect(response.data).to.eql(null);",
+              "});",
+              "",
+              "if (pm.response.code === 200) {",
               "  pm.collectionVariables.unset('employeeId');",
               "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Rechazar empleado inválido",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"An\",\n  \"cargo\": \"Developer\",\n  \"departamento\": \"TI\",\n  \"sueldo\": -200\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/empleados",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "empleados"]
+        },
+        "description": "Comprueba que Zod rechace nombre y sueldo antes de ejecutar el controlador."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde con HTTP 400', function () {",
+              "  pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test('Devuelve errores estructurados', function () {",
+              "  const response = pm.response.json();",
+              "  const fields = response.errors.map((error) => error.field);",
+              "  pm.expect(response.success).to.eql(false);",
+              "  pm.expect(response.data).to.eql(null);",
+              "  pm.expect(fields).to.include('nombre');",
+              "  pm.expect(fields).to.include('sueldo');",
+              "});"
             ]
           }
         }

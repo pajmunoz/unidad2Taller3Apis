@@ -42,6 +42,42 @@ sin ser modificado y no contiene imports de Mongoose ni del modelo de MongoDB.
 *   **Problema en la Base:** No existe validación de tipos ni reglas de negocio en tiempo de ejecución. El servidor responde con payloads planos asimétricos y expone excepciones crudas del sistema en caso de fallos.
 *   **Refactorización Exigida:** Construir esquemas declarativos con **Zod** (`employee.dto.ts`) para blindar `req.body` y `req.params`. Implementar el **Response Wrapper Pattern** y un middleware interceptor global de errores para unificar las salidas HTTP exitosas y fallidas.
 
+#### Solución implementada
+
+* `dtos/employee.dto.ts`: valida la creación, actualización y el parámetro `id` con Zod.
+* `middlewares/validate-request.middleware.ts`: intercepta y sanitiza la entrada antes del controlador.
+* `shared/http/api-response.ts`: centraliza las respuestas mediante `sendSuccess` y `sendError`.
+* `middlewares/error-handler.middleware.ts`: convierte errores de validación, aplicación,
+  JSON malformado y errores inesperados a un contrato HTTP seguro.
+* `shared/errors/AppError.ts`: representa errores operacionales con un estado HTTP controlado.
+
+Todas las respuestas exitosas utilizan:
+
+```json
+{
+  "success": true,
+  "message": "Empleado creado correctamente",
+  "data": {}
+}
+```
+
+Los errores de validación utilizan:
+
+```json
+{
+  "success": false,
+  "message": "La solicitud contiene datos inválidos",
+  "data": null,
+  "errors": [
+    { "field": "nombre", "message": "El nombre debe tener al menos 3 caracteres" }
+  ]
+}
+```
+
+La validación se ejecuta en las rutas antes del controlador; una solicitud inválida no accede
+al repositorio ni a MongoDB. Los detalles internos de las excepciones solamente se registran en
+el servidor y nunca se incluyen en la respuesta HTTP.
+
 ### 📨 [Reto 3] Programación Reactiva e Inmutabilidad en el Servicio
 *   **Problema en la Base:** El frontend de Angular almacena el estado en arreglos mutables locales dentro del componente de la vista y realiza peticiones directas mediante `HttpClient` en las funciones de interacción.
 *   **Refactorización Exigida:** Aislar la lógica de consumo en un servicio reactivo (`EmployeeService`). Utilizar **RxJS** implementando `BehaviorSubject` privados y flujos exponenciales de solo lectura (`Observable$`) bajo el patrón de mutación de referencias inmutables (`[...current, new]`).
