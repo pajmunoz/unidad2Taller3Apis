@@ -1,0 +1,214 @@
+{
+  "info": {
+    "_postman_id": "875719a4-e919-4cdf-b959-b4a22f659c45",
+    "name": "Gestión de empleados API",
+    "description": "Colección para comprobar el CRUD de empleados y la conexión del backend. Ejecute las peticiones en el orden definido; Crear empleado guarda automáticamente employeeId para las operaciones posteriores.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "employeeId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Estado del servidor",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Comprueba que el servidor Express esté disponible."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde con HTTP 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('El estado es ok', function () {",
+              "  pm.expect(pm.response.json().status).to.eql('ok');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Listar empleados",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/empleados",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "empleados"]
+        },
+        "description": "Obtiene todos los empleados almacenados."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde con HTTP 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('La respuesta es un arreglo', function () {",
+              "  pm.expect(pm.response.json()).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Crear empleado",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Andrés Mendoza\",\n  \"cargo\": \"Arquitecto de Software\",\n  \"departamento\": \"Innovación\",\n  \"sueldo\": 4500\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/empleados",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "empleados"]
+        },
+        "description": "Crea un empleado y guarda su identificador en la variable employeeId."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde con HTTP 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const employee = pm.response.json();",
+              "",
+              "pm.test('El empleado contiene un id', function () {",
+              "  pm.expect(employee.id).to.be.a('string').and.not.empty;",
+              "});",
+              "",
+              "pm.collectionVariables.set('employeeId', employee.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Actualizar empleado",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cargo\": \"Arquitecto de Soluciones\",\n  \"sueldo\": 5000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/empleados/{{employeeId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "empleados", "{{employeeId}}"]
+        },
+        "description": "Actualiza el empleado creado en la petición anterior."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde con HTTP 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Los datos fueron actualizados', function () {",
+              "  const employee = pm.response.json();",
+              "  pm.expect(employee.id).to.eql(pm.collectionVariables.get('employeeId'));",
+              "  pm.expect(employee.cargo).to.eql('Arquitecto de Soluciones');",
+              "  pm.expect(employee.sueldo).to.eql(5000);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Eliminar empleado",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/empleados/{{employeeId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "empleados", "{{employeeId}}"]
+        },
+        "description": "Elimina el empleado de prueba y limpia la variable employeeId."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde con HTTP 204', function () {",
+              "  pm.response.to.have.status(204);",
+              "});",
+              "",
+              "if (pm.response.code === 204) {",
+              "  pm.collectionVariables.unset('employeeId');",
+              "}"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

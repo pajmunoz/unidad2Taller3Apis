@@ -1,26 +1,74 @@
-const empleadoController:any={};
+import type { NextFunction, Request, Response } from 'express';
+import type {
+  EmployeeChanges,
+  NewEmployee,
+} from '../domain/entities/employee.js';
+import type { IEmployeeRepository } from '../domain/repositories/IEmployeeRepository.js';
 
-const Empleado=require('../models/empleado');
+export class EmployeeController {
+  constructor(private readonly employeeRepository: IEmployeeRepository) {}
 
-empleadoController.getEmpleado=async(req,res)=>{
-    const empleados=await Empleado.find();
-    res.json(empleados);
-}
+  getEmployees = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const employees = await this.employeeRepository.findAll();
+      res.json(employees);
+    } catch (error) {
+      next(error);
+    }
+  };
 
-empleadoController.addEmpleado=async(req,res)=>{
-    const empleado=new Empleado(req.body);
-    await empleado.save();
-    res.json({status:'Empleado guardado'});
-}
+  addEmployee = async (
+    req: Request<Record<string, never>, unknown, NewEmployee>,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const employee = await this.employeeRepository.create(req.body);
+      res.status(201).json(employee);
+    } catch (error) {
+      next(error);
+    }
+  };
 
-empleadoController.updateEmpleado=async(req,res)=>{
-    const {id}=req.params;
-    const empleado=await Empleado.findByIdAndUpdate(id,req.body);
-    res.json({status:'Empleado actualizado'});
+  updateEmployee = async (
+    req: Request<{ id: string }, unknown, EmployeeChanges>,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const employee = await this.employeeRepository.update(req.params.id, req.body);
+
+      if (!employee) {
+        res.status(404).json({ message: 'Empleado no encontrado' });
+        return;
+      }
+
+      res.json(employee);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deleteEmployee = async (
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const deleted = await this.employeeRepository.delete(req.params.id);
+
+      if (!deleted) {
+        res.status(404).json({ message: 'Empleado no encontrado' });
+        return;
+      }
+
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  };
 }
-empleadoController.deleteEmpleado=async(req,res)=>{
-    const {id}=req.params;
-    await Empleado.findByIdAndRemove(id);
-    res.json({status:'Empleado eliminado'});
-}
-module.exports=empleadoController;

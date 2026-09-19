@@ -1,15 +1,23 @@
 import express from 'express';
+import cors from 'cors';
 import morgan from 'morgan';
+import type { IEmployeeRepository } from './domain/repositories/IEmployeeRepository.js';
+import { createEmployeeRouter } from './routes/empleados.routes.js';
 
+export const createApp = (employeeRepository: IEmployeeRepository) => {
+  const app = express();
+  const employeeRoutes = createEmployeeRouter(employeeRepository);
 
-const app = express();
-app.use(express.json());
-//app.use(cors());
+  app.use(morgan('dev'));
+  app.use(cors());
+  app.use(express.json());
 
-//settings
-app.set('puerto',process.env.PORT|| 3000);
-app.set('nombreApp','Gestión de empleados');
-app.use(morgan('dev'));
-app.use('/api/v1',require('./routes/empleados.routes'));
+  app.get('/health', (_req, res) => {
+    res.json({ status: 'ok' });
+  });
 
-module.exports=app;
+  app.use('/api/v1/empleados', employeeRoutes);
+  app.use('/api/v1/employees', employeeRoutes);
+
+  return app;
+};

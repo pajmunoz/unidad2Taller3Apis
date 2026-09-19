@@ -14,6 +14,30 @@ Los estudiantes deberán tomar el código fuente inicial (el cual viola principi
 *   **Problema en la Base:** Los controladores de Express conocen e instancian directamente el modelo de Mongoose (`EmployeeModel`), acoplando la red con el motor de base de datos.
 *   **Refactorización Exigida:** Implementar el **Patrón Repository** mediante una interfaz abstracta (`IEmployeeRepository`). La capa de Express debe ser agnóstica al ODM; si se remueve el `import mongoose` del controlador, el sistema debe seguir compilando perfectamente.
 
+#### Solución implementada
+
+El backend aplica inversión de dependencias mediante estas responsabilidades:
+
+```text
+HTTP/Express
+    ↓ depende de
+IEmployeeRepository (dominio)
+    ↑ implementado por
+MongooseEmployeeRepository (infraestructura)
+    ↓ utiliza
+EmployeeModel / MongoDB
+```
+
+* `domain/entities/employee.ts`: entidad y tipos del dominio.
+* `domain/repositories/IEmployeeRepository.ts`: contrato independiente de la base de datos.
+* `infrastructure/repositories/MongooseEmployeeRepository.ts`: adaptador que implementa el contrato.
+* `infrastructure/database/mongoose/`: conexión y modelo exclusivos de Mongoose.
+* `controllers/empleados.controllers.ts`: depende solamente de `IEmployeeRepository`.
+* `index.ts`: punto de composición que construye e inyecta la implementación concreta.
+
+De esta forma, el controlador puede utilizar otra persistencia que implemente el mismo contrato
+sin ser modificado y no contiene imports de Mongoose ni del modelo de MongoDB.
+
 ### 🛡️ [Reto 2] Validación Perimetral DTO y Respuesta Universal
 *   **Problema en la Base:** No existe validación de tipos ni reglas de negocio en tiempo de ejecución. El servidor responde con payloads planos asimétricos y expone excepciones crudas del sistema en caso de fallos.
 *   **Refactorización Exigida:** Construir esquemas declarativos con **Zod** (`employee.dto.ts`) para blindar `req.body` y `req.params`. Implementar el **Response Wrapper Pattern** y un middleware interceptor global de errores para unificar las salidas HTTP exitosas y fallidas.
@@ -41,11 +65,36 @@ Debido a cambios internos en las APIs globales de las versiones de Node.js moder
    ```bash
    npm install
    ```
-3. Ejecuta el servidor en modo de desarrollo adaptativo (*Hot Reload watch*):
+3. Crea tu configuración local (el repositorio ya incluye un `.env` ignorado por Git):
+   ```bash
+   cp .env.example .env
+   ```
+   Para MongoDB local conserva `MONGO_URI=mongodb://127.0.0.1:27017/usuarios_db`.
+   Para MongoDB Atlas, reemplázala con la cadena de conexión entregada por Atlas.
+4. Asegúrate de que MongoDB esté ejecutándose. Si utilizas Docker Desktop, ábrelo y ejecuta:
+   ```bash
+   docker compose up -d
+   ```
+   La primera ejecución descargará MongoDB y creará un volumen persistente. Puedes comprobarlo con:
+   ```bash
+   docker compose ps
+   ```
+5. Levanta el servidor:
    ```bash
    npm run dev
    ```
    *El backend inicializará el compilador dinámico y escuchará peticiones en el puerto `3000`.*
+
+La API queda disponible tanto en `http://localhost:3000/api/v1/empleados` como en
+`http://localhost:3000/api/v1/employees`. Las operaciones de actualización y eliminación
+requieren el identificador en la URL: `PUT /api/v1/empleados/:id` y
+`DELETE /api/v1/empleados/:id`.
+
+### Pruebas con Postman
+
+Importa `backend/postman/empleados.postman_collection.json` en Postman y ejecuta la
+colección en el orden definido. La colección utiliza `http://localhost:3000` como `baseUrl`;
+la creación guarda automáticamente `employeeId` para las pruebas de actualización y eliminación.
 
 ### 2. Despliegue de la Interfaz (Frontend)
 1. En una nueva terminal, navega al directorio del cliente:

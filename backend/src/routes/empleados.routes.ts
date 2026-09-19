@@ -1,10 +1,17 @@
-const express= require('express'); 
-const router=express.Router(); 
-const empleado=require('../controllers/empleados.controllers'); 
+import { Router } from 'express';
+import { EmployeeController } from '../controllers/empleados.controllers.js';
+import type { IEmployeeRepository } from '../domain/repositories/IEmployeeRepository.js';
 
-router.get('/empleados',empleado.getEmpleado); 
-router.post('/empleados', empleado.addEmpleado); 
-router.put('/empleados', empleado.updateEmpleado); 
-router.delete('/empleados', empleado.deleteEmpleado); 
+export const createEmployeeRouter = (
+  employeeRepository: IEmployeeRepository,
+): Router => {
+  const router = Router();
+  const controller = new EmployeeController(employeeRepository);
 
-module.exports=router;
+  router.get('/', controller.getEmployees);
+  router.post('/', controller.addEmployee);
+  router.put('/:id', controller.updateEmployee);
+  router.delete('/:id', controller.deleteEmployee);
+
+  return router;
+};
