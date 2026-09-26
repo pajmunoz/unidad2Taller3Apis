@@ -8,7 +8,7 @@ import type {
 import { AppError } from '../shared/errors/AppError.js';
 import { sendSuccess } from '../shared/http/api-response.js';
 
-export class EmployeeController {
+export class EmpleadosController {
   constructor(private readonly employeeRepository: IEmployeeRepository) {}
 
   getEmployees = async (

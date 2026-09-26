@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { EmployeeController } from '../controllers/empleados.controllers.js';
+import { EmpleadosController } from '../controllers/empleados.controllers.js';
 import type { IEmployeeRepository } from '../domain/repositories/IEmployeeRepository.js';
 import {
   createEmployeeBodySchema,
@@ -12,7 +12,7 @@ export const createEmployeeRouter = (
   employeeRepository: IEmployeeRepository,
 ): Router => {
   const router = Router();
-  const controller = new EmployeeController(employeeRepository);
+  const controller = new EmpleadosController(employeeRepository);
 
   router.get('/', controller.getEmployees);
   router.post(
